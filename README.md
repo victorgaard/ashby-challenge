@@ -23,10 +23,10 @@ Radix Primitives' component composition inspired my approach.
 
 - `Dropdown.Trigger`:
 
-  - Contains the trigger button that toggles the dropdown.
-  - It accepts any kind of children, except `<TextInput />`.
-  - If the children is of type string or JSX element, it renders a `<Button>` with the children inside.
-  - If the children is a function component, it renders the children instead.
+  - Contains the trigger button that toggles the dropdown
+  - It accepts any kind of children, except `<TextInput />`
+  - If the children element type is of `button` or `a`, it renders the children
+  - If it's not, it renders a `<Button>` with the children inside
   - When the trigger is clicked, `onDropdownToggle` is called
   - If the children passed is a button or an anchor, `asChild` should be passed as true so the trigger onClick can be forwarded to the custom content instead
 
