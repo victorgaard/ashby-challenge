@@ -25,10 +25,9 @@ Radix Primitives' component composition inspired my approach.
 
   - Contains the trigger button that toggles the dropdown
   - It accepts any kind of children, except `<TextInput />`
-  - If the children element type is of `button` or `a`, it renders the children
-  - If it's not, it renders a `<Button>` with the children inside
+  - If renders a `<Button>` with the children inside
   - When the trigger is clicked, `onDropdownToggle` is called
-  - If the children passed is a button or an anchor, `asChild` should be passed as true so the trigger onClick can be forwarded to the custom content instead
+  - If the children is either a button or an anchor, `asChild` should be marked as true. This is a way for the trigger props to be forwarded to the custom content instead
 
 - `Dropdown.Body`:
 
@@ -70,14 +69,14 @@ Radix Primitives' component composition inspired my approach.
 // Additionally, they need to provide a close function
 <Dropdown isOpen={boolean} onDropdownToggle={() => void}>
   // When using a button or an anchor as the trigger, asChild
-  // needs to be set to true, so the onClick will be forwarded
+  // needs to be set to true, so the props will be forwarded
   // to the custom content
   <Dropdown.Trigger asChild={boolean?}>
     // Any content, except TextInput
   <Dropdown.Trigger>
   <Dropdown.Body>
     // Optional search component
-    <Dropdown.Search value={string} onChange={(search) => void} />
+    <Dropdown.Search searchTerm={string} onSearchTermChange={(search) => void} />
 
     // Optional results loading skeleton when search is connected to an API,
     // or initial results haven't loaded yet
@@ -88,6 +87,7 @@ Radix Primitives' component composition inspired my approach.
     <Dropdown.Item onClick={(event?) => void} title={string} subtitle={string?} picture={string?} />
 
     // Optional way to group result items
+    // A groupBy string is required
     <Dropdown.Group groupBy={string}>
       <Dropdown.Item ... />
     </Dropdown.Group>
