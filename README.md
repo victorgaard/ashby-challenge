@@ -7,9 +7,7 @@ Design the component API for all the permutations outlined in the image
 ## Assumptions
 
 - Components must be easy to use both by engineers that value flexibility as well as by engineers who prefer good constraints.
-- Composability over props.
-- Dropdown is a pure UI component. All logic and function callbacks should be handled in the parent component.
-- If a subcomponent is used where it shouldn't be, an error is thrown displaying which subcomponents are supported.
+- All logic, data fetch, data transformation, and function callbacks should be handled in the parent component that is using the Dropdown.
 
 ## Inspiration:
 
@@ -19,102 +17,88 @@ Radix Primitives' component composition inspired my approach.
 
 `Dropdown`:
 
-- Dropdown is the main component and holds all the subcomponents.
-- It can be used in a controlled or uncontrolled manner
-- Uncontrolled: the dropdown manages itself when it's opened and when it's closed
-- Controlled: developers need to manage the open and closed states. This is done by passing a boolean to `isOpen` and providing a function to `onOpenChange`.
-- When to use controlled: when there is a need for fine-grained controls, i.e.: one of the dropdown items onClick handles a promise and needs it resolved before closing the dropdown
-- Only accepts `Dropdown.Trigger` and `Dropdown.Body` as children, else it throws an error
+- Dropdown is the main component and holds all the subcomponents
+- Requires `isOpen` and `onDropdownToggle`
+- Has a context in which `isOpen` and `onDropdownToggle` are shared between subcomponents
 
 - `Dropdown.Trigger`:
 
-  - Contains the trigger button that toggles the dropdown. It accepts any content as children, except `TextInput`
-  - If the custom content is a button or an anchor, `asChild` should be passed as true so the trigger props can be passed down to the custom content instead
-  - Receives `isOpen` via context, alongside either an internal or custom `onOpenChange` to update it
+  - Contains the trigger button that toggles the dropdown.
+  - It accepts any kind of children, except `<TextInput />`.
+  - If the children is of type string, it renders a `<Button>`.
+  - If the children is of type `ReactElement`, render the children instead.
+  - When the trigger is clicked, `onDropdownToggle` is called
+  - If the children passed is a button or an anchor, `asChild` should be passed as true so the trigger onClick can be forwarded to the custom content instead
 
 - `Dropdown.Body`:
 
-  - Contains the dropdown body and its style.
-  - Receives `isOpen` via context and renders the dropdown body.
-  - Only accepts `Dropdown.Search`, `Dropdown.Group`, `Dropdown.Item`, `Dropdown.Separator`, and `Dropdown.Extra`, as children, else it throws an error
+  - Renders the dropdown body and its children when `isOpen` is `true`.
+  - Holds the dropdown body style
 
 - `Dropdown.Search`:
 
-  - Contains the search wrapper style, and renders a `TextInput`
-  - Requires a search string, and an `onSearchChange` function
+  - Contains the search wrapper style, and renders a `<TextInput>` as a controlled component
+  - Requires a string `value`, and an `onChange` function to manage `<TextInput>` states
 
 - `Dropdown.Group`:
 
   - Contains the group wrapper style
-  - Requires a `groupBy`` string
-  - Only accepts `Dropdown.Item` as children
+  - Requires a `groupBy` string
 
 - `Dropdown.Item`:
 
-  - Renders the dropdown item
-  - Requires an `onClick` function
-  - Clicking in an item closes the dropdown, but the event is passed as an optional argument in `onClick`` function in case the behavior should be changed
-
-- `Dropdown.ItemImage`:
-  - Renders the item image
-
-- `Dropdown.ItemTitle`:
-  - Renders the item title
-
-- `Dropdown.ItemSubTitle`:
-  - Renders the item subtitle
+  - Renders the dropdown item and manage its style based on the props
+  - Requires a `title`, and an `onClick` function
+  - Optinally it can receive a `subtitle`, and a `picture`
+  - Clicking in an item closes the dropdown, but the event is passed as an optional argument in `onClick` function in case the behavior needs to be changed
 
 - `Dropdown.Separator`:
 
   - Renders a line separator
 
-- `Dropdown.Extra`:
-  - A component to render anything, like a button
+- `Dropdown.Skeleton`:
+
+  - Renders a loading skeleton
+
+- `Dropdown.Footer`:
+  - A component to render any children, like the control to add a new item
 
 ## Pseudo JSX:
 
 ```HTML
-// Developers can make the Dropdown controlled, but it's not required
-<Dropdown isOpen={boolean?} onOpenChange={(isOpenStatus) => void(isOpenStatus)?}>
-  // When asChild is set to true, the trigger props will be passed down to the custom content
+// Developers need to specify when the dropdown is open or not.
+// Additionally, they need to provide a close function
+<Dropdown isOpen={boolean} onDropdownToggle={() => void}>
+  // When using a button or an anchor as the trigger, asChild
+  // needs to be set to true, so the onClick will be forwarded
+  // to the custom content
   <Dropdown.Trigger asChild={boolean?}>
     // Any content, except TextInput
   <Dropdown.Trigger>
-
   <Dropdown.Body>
-    // Optional search component 
-    <Dropdown.Search search={string} onSearchChange={(newSearch) => void(newSearch)} />
+    // Optional search component
+    <Dropdown.Search value={string} onChange={(search) => void} />
 
-    // Renders the item
-    <Dropdown.Item onClick={(event?) => void}>
-      // Optional item image
-      <Dropdown.ItemImage src={string} />
+    // Optional results loading skeleton when search is connected to an API,
+    // or initial results haven't loaded yet
+    <Dropdown.Skeleton />
 
-      // Required item title
-      <Dropdown.ItemTitle>
-        // Text
-      </Dropdown.ItemTitle>
+    // Renders the result item and expect a title and an onClick handler
+    // When clicked, it executes the callback and close the dropdown
+    <Dropdown.Item onClick={(event?) => void} title={string} subtitle={string?} picture={string?} />
 
-      // Optional subtitle
-      <Dropdown.ItemSubtitle>
-        // Text
-      </Dropdown.ItemTitle>
-    </Dropdown.Item>
-
-    // Optional way to group results
+    // Optional way to group result items
     <Dropdown.Group groupBy={string}>
-      <Dropdown.Item onClick={(event?) => void}>
-        ...
-      </Dropdown.Item>
+      <Dropdown.Item ... />
     </Dropdown.Group>
 
-    // Optional section separator
+    // Optional separator
     <Dropdown.Separator />
 
-    // Optional extra content
-    <Dropdown.Extra>
-      // Anything can go in here, like a button
-    </Dropdown.Extra>
+    // Optional footer
+    <Dropdown.Footer>
+      // Any content can go here
+    </Dropdown.Footer>
   </Dropdown.Body>
 </Dropdown>
 ```
