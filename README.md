@@ -9,11 +9,94 @@ Design the component API for all the permutations outlined in the image
 - Components must be easy to use both by engineers that value flexibility as well as by engineers who prefer good constraints.
 - All logic, data fetch, data transformation, and function callbacks should be handled in the parent component that is using the Dropdown.
 
+## Design rationale
+
+- I chose to build my component using the compound pattern to aim for modularity and customization
+- The base component and its subcomponents are the building blocks to compose a Dropdown in multiple ways (think it like a LEGO box)
+- Component wrappers can be made composing certain subcomponents to tailor for common use cases (i.e.: `DropdownAutocomplete`, `DropdownUsers`, `DropdownGroupBy`, etc)
+- Benefit for design engineers: they can easily maintain and improve the component without relying in complex optionals to handle all use cases
+- Benefit for product engineers: they can use a wrapper component for clarity and velocity, instead of composing with the subcomponents
+
 ## Inspiration:
 
 Radix Primitives' component composition inspired my approach.
 
-## Components:
+
+## Pseudo JSX:
+
+- Base component
+
+```HTML
+// Developers need to specify when the dropdown is open or not.
+// Additionally, they need to provide a close function
+<Dropdown isOpen={boolean} onDropdownToggle={() => void}>
+  // When using a button or an anchor as the trigger, asChild
+  // needs to be set to true, so the props will be forwarded
+  // to the custom content
+  <Dropdown.Trigger asChild={boolean?}>
+    // Any content, except TextInput
+  <Dropdown.Trigger>
+  <Dropdown.Body>
+    // Optional search component
+    <Dropdown.Search searchTerm={string} onSearchTermChange={(search) => void} />
+
+    // Optional results loading skeleton when search is connected to an API,
+    // or initial results haven't loaded yet
+    <Dropdown.Skeleton />
+
+    // Renders the result item and expect a title and an onClick handler
+    // When clicked, it executes the callback and close the dropdown
+    <Dropdown.Item onClick={(event?) => void} title={string} subtitle={string?} picture={string?} />
+
+    // Optional way to group result items
+    // A groupBy string is required
+    <Dropdown.Group groupBy={string}>
+      <Dropdown.Item ... />
+    </Dropdown.Group>
+
+    // Optional separator
+    <Dropdown.Separator />
+
+    // Optional footer
+    <Dropdown.Footer>
+      // Any content can go here
+    </Dropdown.Footer>
+  </Dropdown.Body>
+</Dropdown>
+```
+
+- Derived wrapper component for a dropdown with in-memory search (all wrappers should be paired with tests to catch any breaking changes early on)
+
+```JSX
+function DropdownAutocomplete({ trigger, results, onClick }: DropdownAutocompleteProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const filteredResults = results.filter(
+    result =>
+      title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <Dropdown isOpen={isOpen} onDropdownToggle={() => setIsOpen(!isOpen)}>
+      <Dropdown.Trigger>
+        {trigger}
+      </Dropdown.Trigger>
+      <Dropdown.Body>
+        <Dropdown.Search searchTerm={searchTerm} onSearchTermChange={search => setSearchTerm(search)} />
+        {filteredResults.map(result => <Dropdown.Item key={result.id} title={result.title} onClick={onClick} />)}
+      </Dropdown.Body>
+    </Dropdown>
+  )
+}
+```
+
+- Wrapper usage
+```JSX
+<DropdownAutoComplete trigger={<Button>Click me</Button>} results={results} onClick={() => void} />
+```
+
+## Component blueprint:
 
 `Dropdown`:
 
@@ -61,44 +144,3 @@ Radix Primitives' component composition inspired my approach.
 
 - `Dropdown.Footer`:
   - A component to render any children, like the control to add a new item
-
-## Pseudo JSX:
-
-```HTML
-// Developers need to specify when the dropdown is open or not.
-// Additionally, they need to provide a close function
-<Dropdown isOpen={boolean} onDropdownToggle={() => void}>
-  // When using a button or an anchor as the trigger, asChild
-  // needs to be set to true, so the props will be forwarded
-  // to the custom content
-  <Dropdown.Trigger asChild={boolean?}>
-    // Any content, except TextInput
-  <Dropdown.Trigger>
-  <Dropdown.Body>
-    // Optional search component
-    <Dropdown.Search searchTerm={string} onSearchTermChange={(search) => void} />
-
-    // Optional results loading skeleton when search is connected to an API,
-    // or initial results haven't loaded yet
-    <Dropdown.Skeleton />
-
-    // Renders the result item and expect a title and an onClick handler
-    // When clicked, it executes the callback and close the dropdown
-    <Dropdown.Item onClick={(event?) => void} title={string} subtitle={string?} picture={string?} />
-
-    // Optional way to group result items
-    // A groupBy string is required
-    <Dropdown.Group groupBy={string}>
-      <Dropdown.Item ... />
-    </Dropdown.Group>
-
-    // Optional separator
-    <Dropdown.Separator />
-
-    // Optional footer
-    <Dropdown.Footer>
-      // Any content can go here
-    </Dropdown.Footer>
-  </Dropdown.Body>
-</Dropdown>
-```
