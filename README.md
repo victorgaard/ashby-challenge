@@ -9,17 +9,24 @@ Design the component API for all the permutations outlined in the image
 - Components must be easy to use both by engineers that value flexibility as well as by engineers who prefer good constraints.
 - All logic, data fetch, data transformation, and function callbacks should be handled in the parent component that is using the Dropdown.
 
+## Inspiration:
+
+Radix Primitives' component composition inspired my approach.
+
 ## Design rationale
 
 - I chose to build my component using the compound pattern to aim for modularity and customization
 - The base component and its subcomponents are the building blocks to compose a Dropdown in multiple ways (think it like a LEGO box)
-- Component wrappers can be made composing certain subcomponents to tailor for common use cases (i.e.: `DropdownAutocomplete`, `DropdownUsers`, `DropdownGroupBy`, etc)
-- Benefit for design engineers: they can easily maintain and improve the component without relying in complex optionals to handle all use cases
-- Benefit for product engineers: they can use a wrapper component for clarity and velocity, instead of composing with the subcomponents
+- Component wrappers can be made composing certain subcomponents to tailor for the use cases (i.e.: `DropdownAutocomplete`, `DropdownUsers`, `DropdownGroupBy`, etc)
+- Benefit for design engineers: they can easily maintain and improve the component without relying in complex optionals or logic to handle all use cases. 
+- In case there are new requirements for the Dropdown, iterating existing subcomponents or creating other wrappers is straightforward
+- Benefit for product engineers: they can opt-in to use a wrapper component instead of composing with the subcomponents
+- Lastly, in my opinion, testing, debugging and iterating components this way becomes simpler than a one size fits all
 
-## Inspiration:
-
-Radix Primitives' component composition inspired my approach.
+## Tradeoffs
+- This approach adds initial overhead to the process, so the buy in from the team is crucial
+- It requires an exhaustive set of subcomponents, and the creation of wrapper component variants to support the use cases
+- Furthermore, it also relies on good documentation
 
 
 ## Pseudo JSX:
@@ -93,7 +100,7 @@ function DropdownAutocomplete({ trigger, results, onClick }: DropdownAutocomplet
 
 - Wrapper usage
 ```JSX
-<DropdownAutoComplete trigger={<Button>Click me</Button>} results={results} onClick={() => void} />
+<DropdownAutocomplete trigger={<Button>Click me</Button>} results={results} onClick={() => void} />
 ```
 
 ## Component blueprint:
